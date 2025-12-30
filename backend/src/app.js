@@ -1,6 +1,8 @@
 import express from "express";
 import errorHandler from "./middlewares/error.middleware.js";
 import authRoutes from "./modules/auth/auth.route.js";
+import authenticate from "./middlewares/auth.middleware.js";
+import authorizeRoles from "./middlewares/rbac.middleware.js";
 
 const app = express();
 
@@ -11,6 +13,24 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+
+app.get(
+  "/api/test/all",
+  authenticate,
+  authorizeRoles("admin", "user", "read-only"),
+  (req, res) => {
+    res.json({ message: "All roles allowed" });
+  }
+);
+
+app.get(
+  "/api/test/admin",
+  authenticate,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.json({ message: "Admin only" });
+  }
+);
 
 app.use(errorHandler);
 
