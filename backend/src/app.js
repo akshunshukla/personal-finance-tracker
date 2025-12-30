@@ -3,6 +3,7 @@ import errorHandler from "./middlewares/error.middleware.js";
 import authRoutes from "./modules/auth/auth.route.js";
 import authenticate from "./middlewares/auth.middleware.js";
 import authorizeRoles from "./middlewares/rbac.middleware.js";
+import transactionRoutes from "./modules/transactions/transaction.route.js";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.get(
   }
 );
 
+app.use("/api/transactions", transactionRoutes);
 app.use(errorHandler);
 
 export default app;

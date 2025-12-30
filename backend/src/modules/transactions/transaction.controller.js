@@ -1,0 +1,71 @@
+import asyncHandler from "../../utils/asyncHandler.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import {
+  getTransactions,
+  updateTransaction,
+  deleteTransaction,
+} from "./transaction.service.js";
+import { createTransaction } from "./transaction.service.js";
+import ApiError from "../../utils/ApiError.js";
+
+export const fetchTransactions = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  const offset = (page - 1) * limit;
+
+  const transactions = await getTransactions({
+    userId: req.user.userId,
+    role: req.user.role,
+    limit: Number(limit),
+    offset: Number(offset),
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, transactions, "Transactions fetched"));
+});
+
+export const addTransaction = asyncHandler(async (req, res) => {
+  const { type, category, amount, transactionDate } = req.body;
+
+  const transaction = await createTransaction({
+    userId: req.user.userId,
+    type,
+    category,
+    amount,
+    transactionDate,
+  });
+
+  res
+    .status(201)
+    .json(new ApiResponse(201, transaction, "Transaction created"));
+});
+
+export const editTransaction = asyncHandler(async (req, res) => {
+  const updated = await updateTransaction({
+    transactionId: req.params.id,
+    userId: req.user.userId,
+    role: req.user.role,
+    ...req.body,
+  });
+
+  if (!updated) {
+    throw new ApiError(404, "Transaction not found or unauthorized");
+  }
+
+  res.status(200).json(new ApiResponse(200, updated, "Transaction updated"));
+});
+
+export const removeTransaction = asyncHandler(async (req, res) => {
+  const deleted = await deleteTransaction({
+    transactionId: req.params.id,
+    userId: req.user.userId,
+    role: req.user.role,
+  });
+
+  if (!deleted) {
+    throw new ApiError(404, "Transaction not found or unauthorized");
+  }
+
+  res.status(200).json(new ApiResponse(200, deleted, "Transaction deleted"));
+});
