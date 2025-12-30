@@ -4,6 +4,8 @@ import authRoutes from "./modules/auth/auth.route.js";
 import authenticate from "./middlewares/auth.middleware.js";
 import authorizeRoles from "./middlewares/rbac.middleware.js";
 import transactionRoutes from "./modules/transactions/transaction.route.js";
+import analyticsRoutes from "./modules/analytics/analytics.route.js";
+import categoryRoutes from "./modules/categories/category.route.js";
 
 const app = express();
 
@@ -34,6 +36,11 @@ app.get(
 );
 
 app.use("/api/transactions", transactionRoutes);
+
+app.use("/api/analytics", analyticsRoutes);
+
 app.use(errorHandler);
+
+app.use("/api/categories", categoryRoutes);
 
 export default app;

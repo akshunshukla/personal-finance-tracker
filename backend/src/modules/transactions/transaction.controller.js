@@ -7,6 +7,7 @@ import {
 } from "./transaction.service.js";
 import { createTransaction } from "./transaction.service.js";
 import ApiError from "../../utils/ApiError.js";
+import redis from "../../config/redis.js";
 
 export const fetchTransactions = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
@@ -35,6 +36,8 @@ export const addTransaction = asyncHandler(async (req, res) => {
     amount,
     transactionDate,
   });
+  await redis.del(`analytics:summary:user:${req.user.userId}`);
+  await redis.del("analytics:summary:admin");
 
   res
     .status(201)
@@ -52,6 +55,8 @@ export const editTransaction = asyncHandler(async (req, res) => {
   if (!updated) {
     throw new ApiError(404, "Transaction not found or unauthorized");
   }
+  await redis.del(`analytics:summary:user:${req.user.userId}`);
+  await redis.del("analytics:summary:admin");
 
   res.status(200).json(new ApiResponse(200, updated, "Transaction updated"));
 });
@@ -66,6 +71,8 @@ export const removeTransaction = asyncHandler(async (req, res) => {
   if (!deleted) {
     throw new ApiError(404, "Transaction not found or unauthorized");
   }
+  await redis.del(`analytics:summary:user:${req.user.userId}`);
+  await redis.del("analytics:summary:admin");
 
   res.status(200).json(new ApiResponse(200, deleted, "Transaction deleted"));
 });
