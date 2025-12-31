@@ -1,6 +1,10 @@
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiResponse from "../../utils/ApiResponse.js";
-import { getSummary } from "./analytics.service.js";
+import {
+  getSummary,
+  getCategoryBreakdown,
+  getMonthlyTrends,
+} from "./analytics.service.js";
 import redis from "../../config/redis.js";
 
 export const fetchSummary = asyncHandler(async (req, res) => {
@@ -18,7 +22,11 @@ export const fetchSummary = asyncHandler(async (req, res) => {
       .json(new ApiResponse(200, cached, "Analytics summary (cached)"));
   }
 
-  const summary = await getSummary({ userId, role });
+  const [summary, categoryData, trendData] = await Promise.all([
+    getSummary({ userId, role }),
+    getCategoryBreakdown({ userId, role }),
+    getMonthlyTrends({ userId, role }),
+  ]);
 
   const netBalance =
     Number(summary.total_income) - Number(summary.total_expense);
@@ -27,10 +35,12 @@ export const fetchSummary = asyncHandler(async (req, res) => {
     totalIncome: summary.total_income,
     totalExpense: summary.total_expense,
     netBalance,
+    categoryBreakdown: categoryData,
+    monthlyTrends: trendData,
   };
 
   await redis.set(cacheKey, response, {
-    ex: Number(process.env.ANALYTICS_CACHE_TTL),
+    ex: Number(process.env.ANALYTICS_CACHE_TTL || 900),
   });
 
   res

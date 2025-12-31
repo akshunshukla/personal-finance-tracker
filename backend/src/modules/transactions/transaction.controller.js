@@ -4,13 +4,20 @@ import {
   getTransactions,
   updateTransaction,
   deleteTransaction,
+  createTransaction,
 } from "./transaction.service.js";
-import { createTransaction } from "./transaction.service.js";
 import ApiError from "../../utils/ApiError.js";
 import redis from "../../config/redis.js";
 
 export const fetchTransactions = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const {
+    page = 1,
+    limit = 10,
+    type,
+    categoryId,
+    startDate,
+    endDate,
+  } = req.query;
 
   const offset = (page - 1) * limit;
 
@@ -19,6 +26,10 @@ export const fetchTransactions = asyncHandler(async (req, res) => {
     role: req.user.role,
     limit: Number(limit),
     offset: Number(offset),
+    type,
+    categoryId,
+    startDate,
+    endDate,
   });
 
   res
@@ -27,12 +38,12 @@ export const fetchTransactions = asyncHandler(async (req, res) => {
 });
 
 export const addTransaction = asyncHandler(async (req, res) => {
-  const { type, category, amount, transactionDate } = req.body;
+  const { type, categoryId, amount, transactionDate } = req.body;
 
   const transaction = await createTransaction({
     userId: req.user.userId,
     type,
-    category,
+    categoryId,
     amount,
     transactionDate,
   });
@@ -45,17 +56,21 @@ export const addTransaction = asyncHandler(async (req, res) => {
 });
 
 export const editTransaction = asyncHandler(async (req, res) => {
+  const { type, categoryId, amount, transactionDate } = req.body;
   const updated = await updateTransaction({
     transactionId: req.params.id,
     userId: req.user.userId,
     role: req.user.role,
-    ...req.body,
+    type,
+    categoryId,
+    amount,
+    transactionDate,
   });
 
   if (!updated) {
     throw new ApiError(404, "Transaction not found or unauthorized");
   }
-  await redis.del(`analytics:summary:user:${req.user.userId}`);
+  await redis.del(`analytics:summary:user:${updated.userId}`);
   await redis.del("analytics:summary:admin");
 
   res.status(200).json(new ApiResponse(200, updated, "Transaction updated"));
@@ -71,7 +86,7 @@ export const removeTransaction = asyncHandler(async (req, res) => {
   if (!deleted) {
     throw new ApiError(404, "Transaction not found or unauthorized");
   }
-  await redis.del(`analytics:summary:user:${req.user.userId}`);
+  await redis.del(`analytics:summary:user:${deleted.userId}`);
   await redis.del("analytics:summary:admin");
 
   res.status(200).json(new ApiResponse(200, deleted, "Transaction deleted"));

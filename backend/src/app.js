@@ -1,14 +1,14 @@
 import express from "express";
 import errorHandler from "./middlewares/error.middleware.js";
+import cors from "cors";
 import authRoutes from "./modules/auth/auth.route.js";
-import authenticate from "./middlewares/auth.middleware.js";
-import authorizeRoles from "./middlewares/rbac.middleware.js";
 import transactionRoutes from "./modules/transactions/transaction.route.js";
 import analyticsRoutes from "./modules/analytics/analytics.route.js";
 import categoryRoutes from "./modules/categories/category.route.js";
+import userRoutes from "./modules/users/user.route.js";
 
 const app = express();
-
+app.use(cors());
 app.use(express.json());
 
 app.get("/health", (req, res) => {
@@ -17,30 +17,14 @@ app.get("/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 
-app.get(
-  "/api/test/all",
-  authenticate,
-  authorizeRoles("admin", "user", "read-only"),
-  (req, res) => {
-    res.json({ message: "All roles allowed" });
-  }
-);
-
-app.get(
-  "/api/test/admin",
-  authenticate,
-  authorizeRoles("admin"),
-  (req, res) => {
-    res.json({ message: "Admin only" });
-  }
-);
-
 app.use("/api/transactions", transactionRoutes);
 
 app.use("/api/analytics", analyticsRoutes);
 
-app.use(errorHandler);
-
 app.use("/api/categories", categoryRoutes);
+
+app.use("/api/users", userRoutes);
+
+app.use(errorHandler);
 
 export default app;

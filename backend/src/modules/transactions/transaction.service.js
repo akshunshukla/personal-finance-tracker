@@ -1,31 +1,74 @@
 import pool from "../../config/db.js";
 
-export const getTransactions = async ({ userId, role, limit, offset }) => {
-  if (role === "admin") {
-    const result = await pool.query(
-      `SELECT * FROM transactions
-       ORDER BY transaction_date DESC
-       LIMIT $1 OFFSET $2`,
-      [limit, offset]
-    );
-    return result.rows;
+export const getTransactions = async ({
+  userId,
+  role,
+  limit,
+  offset,
+  type,
+  categoryId,
+  startDate,
+  endDate,
+}) => {
+  let query = `
+    SELECT 
+      t.id, 
+      t.user_id, 
+      t.type, 
+      t.amount, 
+      t.transaction_date, 
+      t.created_at,
+      c.id as category_id,
+      c.name as category_name,
+      c.type as category_type
+    FROM transactions t
+    LEFT JOIN categories c ON t.category_id = c.id
+    WHERE 1=1
+  `;
+
+  const values = [];
+  let paramIndex = 1;
+
+  if (role !== "admin") {
+    query += ` AND t.user_id = $${paramIndex}`;
+    values.push(userId);
+    paramIndex++;
   }
 
-  const result = await pool.query(
-    `SELECT * FROM transactions
-     WHERE user_id = $1
-     ORDER BY transaction_date DESC
-     LIMIT $2 OFFSET $3`,
-    [userId, limit, offset]
-  );
+  if (type) {
+    query += ` AND t.type = $${paramIndex}`;
+    values.push(type);
+    paramIndex++;
+  }
+  if (categoryId) {
+    query += ` AND t.category_id = $${paramIndex}`;
+    values.push(categoryId);
+    paramIndex++;
+  }
+  if (startDate) {
+    query += ` AND t.transaction_date >= $${paramIndex}`;
+    values.push(startDate);
+    paramIndex++;
+  }
+  if (endDate) {
+    query += ` AND t.transaction_date <= $${paramIndex}`;
+    values.push(endDate);
+    paramIndex++;
+  }
 
+  query += ` ORDER BY t.transaction_date DESC LIMIT $${paramIndex} OFFSET $${
+    paramIndex + 1
+  }`;
+  values.push(limit, offset);
+
+  const result = await pool.query(query, values);
   return result.rows;
 };
 
 export const createTransaction = async ({
   userId,
   type,
-  category,
+  categoryId,
   amount,
   transactionDate,
 }) => {
@@ -33,13 +76,13 @@ export const createTransaction = async ({
     `INSERT INTO transactions (
       user_id,
       type,
-      category,
+      category_id,
       amount,
       transaction_date
     )
     VALUES ($1, $2, $3, $4, $5)
     RETURNING *`,
-    [userId, type, category, amount, transactionDate]
+    [userId, type, categoryId, amount, transactionDate]
   );
 
   return result.rows[0];
@@ -50,7 +93,7 @@ export const updateTransaction = async ({
   userId,
   role,
   type,
-  category,
+  categoryId,
   amount,
   transactionDate,
 }) => {
@@ -67,7 +110,7 @@ export const updateTransaction = async ({
       : `
         UPDATE transactions
         SET type = $1,
-            category = $2,
+            category_id = $2,
             amount = $3,
             transaction_date = $4
         WHERE id = $5 AND user_id = $6
@@ -75,8 +118,8 @@ export const updateTransaction = async ({
 
   const values =
     role === "admin"
-      ? [type, category, amount, transactionDate, transactionId]
-      : [type, category, amount, transactionDate, transactionId, userId];
+      ? [type, categoryId, amount, transactionDate, transactionId]
+      : [type, categoryId, amount, transactionDate, transactionId, userId];
 
   const result = await pool.query(query, values);
 
