@@ -73,7 +73,7 @@ const Analytics = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header & Refresh Button */}
         <div className="flex justify-between items-center">
@@ -126,7 +126,7 @@ const Analytics = () => {
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Pie Chart: Expense by Category */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-100">
             <h3 className="text-gray-700 font-semibold mb-6">

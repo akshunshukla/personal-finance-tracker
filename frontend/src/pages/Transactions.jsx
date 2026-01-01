@@ -76,7 +76,7 @@ const Transactions = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-2xl font-bold text-gray-700">Transactions</h2>
 
-          <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
             {/* Search Input */}
             <div className="relative">
               <Search
@@ -122,8 +122,8 @@ const Transactions = () => {
         </div>
 
         {/* Transactions Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-          <table className="w-full text-left">
+        <div className="overflow-x-auto">
+          <table className="min-w-150 w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="p-4 font-semibold text-gray-600 text-sm uppercase">

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-const Sidebar = () => {
+const Sidebar = ({ open, setOpen }) => {
   const { logout, user } = useAuth();
 
   const navItems = [
@@ -18,7 +18,11 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-64 bg-white h-screen border-r border-gray-200 flex flex-col fixed left-0 top-0">
+    <div
+      className={`fixed z-50 md:static top-0 left-0 h-full w-64 bg-white border-r
+  transform transition-transform duration-300
+  ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+    >
       {/* Header with Role Badge */}
       <div className="p-6 border-b border-gray-100">
         <h1 className="text-xl font-bold text-blue-600">Finance Tracker</h1>
@@ -38,6 +42,7 @@ const Sidebar = () => {
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={() => setOpen(false)}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                 isActive
