@@ -5,6 +5,7 @@ export const getTransactions = async ({
   role,
   limit,
   offset,
+  search,
   type,
   categoryId,
   startDate,
@@ -35,6 +36,11 @@ export const getTransactions = async ({
     paramIndex++;
   }
 
+  if (search) {
+    query += ` AND c.name ILIKE $${paramIndex}`; // Search in Category Name
+    values.push(`%${search}%`);
+    paramIndex++;
+  }
   if (type) {
     query += ` AND t.type = $${paramIndex}`;
     values.push(type);
